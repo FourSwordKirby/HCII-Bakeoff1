@@ -1,4 +1,5 @@
 import java.awt.AWTException;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.util.ArrayList;
@@ -49,12 +50,85 @@ void setup()
   System.out.println("trial order: " + trials);
   
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
+  
+  mousePoint  = center;
 }
 
+boolean upKeyPressed = false;
+boolean downKeyPressed = false;
+boolean leftKeyPressed = false;
+boolean rightKeyPressed = false;
+Point mousePoint;
+
+Point center = new Point(getButtonLocation(0).x, getButtonLocation(6).y);
+Point center1 = new Point(getButtonLocation(0).x, getButtonLocation(1).y);
+Point center2 = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
+Point center3 = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
+Point center4 = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
+
+ArrayList<Point> swipeBuffer = new ArrayList<Point>();
 
 void draw()
 {
   background(0); //set background to black
+
+  //drawing the highlighted areas
+  if(upKeyPressed){
+    fill(255, 0, 0, 128);
+    Rectangle pos1 = getButtonLocation(0);
+    Rectangle pos2 = getButtonLocation(1);
+    Rectangle pos3 = getButtonLocation(2);
+    Rectangle pos4 = getButtonLocation(4);
+
+    beginShape();
+    vertex(pos4.x, pos4.y + pos4.height/2);
+    vertex(pos2.x - pos2.width/2, pos2.y);
+    vertex(pos1.x, pos1.y - pos1.height/2);
+    vertex(pos3.x + pos3.width/2, pos3.y);
+    endShape(CLOSE);
+  }
+  if(leftKeyPressed){
+    fill(255, 0, 0, 128);
+    Rectangle pos1 = getButtonLocation(3);
+    Rectangle pos2 = getButtonLocation(6);
+    Rectangle pos3 = getButtonLocation(7);
+    Rectangle pos4 = getButtonLocation(10);
+
+    beginShape();
+    vertex(pos4.x, pos4.y + pos4.height/2);
+    vertex(pos2.x - pos2.width/2, pos2.y);
+    vertex(pos1.x, pos1.y - pos1.height/2);
+    vertex(pos3.x + pos3.width/2, pos3.y);
+    endShape(CLOSE);
+  }
+  if(downKeyPressed){
+    fill(255, 0, 0, 128);
+    Rectangle pos1 = getButtonLocation(11);
+    Rectangle pos2 = getButtonLocation(13);
+    Rectangle pos3 = getButtonLocation(14);
+    Rectangle pos4 = getButtonLocation(15);
+
+    beginShape();
+    vertex(pos4.x, pos4.y + pos4.height/2);
+    vertex(pos2.x - pos2.width/2, pos2.y);
+    vertex(pos1.x, pos1.y - pos1.height/2);
+    vertex(pos3.x + pos3.width/2, pos3.y);
+    endShape(CLOSE);
+  }
+  if(rightKeyPressed){
+    fill(255, 0, 0, 128);
+    Rectangle pos1 = getButtonLocation(5);
+    Rectangle pos2 = getButtonLocation(8);
+    Rectangle pos3 = getButtonLocation(9);
+    Rectangle pos4 = getButtonLocation(12);
+
+    beginShape();
+    vertex(pos4.x, pos4.y + pos4.height/2);
+    vertex(pos2.x - pos2.width/2, pos2.y);
+    vertex(pos1.x, pos1.y - pos1.height/2);
+    vertex(pos3.x + pos3.width/2, pos3.y);
+    endShape(CLOSE);
+  }
 
   if (trialNum >= trials.size()) //check to see if test is over
   {
@@ -72,9 +146,9 @@ void draw()
   fill(255); //set fill color to white
   text((trialNum + 1) + " of " + trials.size(), 40, 20); //display what trial the user is on
   
-  //draw the mouse
+  //draw the target point
   fill(255, 0, 0, 200); // set fill color to translucent red
-  ellipse(mouseX, mouseY, 20, 20); //draw user cursor as a circle with a diameter of 20
+  ellipse(mousePoint.x, mousePoint.y, 20, 20); //draw user cursor as a circle with a diameter of 20
 
   //draw the squares
   for (int i = 0; i < 16; i++)// for all button
@@ -97,8 +171,6 @@ void drawButton(int i)
   vertex(bounds.x, bounds.y + bounds.height/2);
   vertex(bounds.x + bounds.width/2, bounds.y);
   endShape(CLOSE);
-  
-  //rect(0, 0, bounds.width, bounds.height); //draw button
 }
 
 //probably shouldn't have to edit this method
@@ -146,27 +218,180 @@ void mousePressed() // test to see if hit was in target!
   }
 
   trialNum++; //Increment trial number
-
-  //in this example code, we move the mouse back to the middle
-  //This code is broken
-  //robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly center of window!
 }  
 
 void mouseMoved()
 {
+  processSwipe();
    //can do stuff everytime the mouse is moved (i.e., not clicked)
    //https://processing.org/reference/mouseMoved_.html
 }
 
-void mouseDragged()
+
+int threshold = 150;
+public void processSwipe()
 {
-  //can do stuff everytime the mouse is dragged
-  //https://processing.org/reference/mouseDragged_.html
+  if (trialNum >= trials.size()) //if task is over, just return
+    return;
+
+  //propogate array full of values of mouse position
+  if(upKeyPressed || leftKeyPressed || downKeyPressed || rightKeyPressed)
+  {
+    if(swipeBuffer.size() > 3)
+      swipeBuffer.remove(0);
+    swipeBuffer.add(new Point(mouseX, mouseY));
+  }
+  else{
+    //maybe make this code later determine what direction you're swiping in and highlight the correct square
+    return;
+  }
+  System.out.println(swipeBuffer.size());
+ 
+  int targetIndex = -1;
+  if(swipeBuffer.size() == 3){
+    int xMin = swipeBuffer.get(0).x;
+    int yMin = swipeBuffer.get(0).y;
+    int xMax = swipeBuffer.get(swipeBuffer.size()-1).x;
+    int yMax = swipeBuffer.get(swipeBuffer.size()-1).y;
+
+    if(xMax -xMin > threshold){
+      if(upKeyPressed){
+        targetIndex = 3;
+      }
+      if(leftKeyPressed){
+        targetIndex = 7;        
+      }
+      if(downKeyPressed){
+        targetIndex = 14;
+      }
+      if(rightKeyPressed){
+        targetIndex = 9;        
+      }
+    }
+    if(yMax - yMin > threshold){
+      if(upKeyPressed){
+        targetIndex = 4;
+      }
+      if(leftKeyPressed){
+        targetIndex = 10;
+      }
+      if(downKeyPressed){
+        targetIndex = 15;
+      }
+      if(rightKeyPressed){
+        targetIndex = 12;
+      }
+    }
+    if(xMin -xMax > threshold){
+      if(upKeyPressed){
+         targetIndex = 2;
+      }
+      if(leftKeyPressed){
+        targetIndex = 8;
+      }
+      if(downKeyPressed){
+        targetIndex = 13;
+      }
+      if(rightKeyPressed){
+        targetIndex = 8;
+      }
+    }
+    if(yMin -yMax > threshold){
+      if(upKeyPressed){
+         targetIndex = 1;
+      }
+      if(leftKeyPressed){
+        targetIndex = 5;
+      }
+      if(downKeyPressed){
+        targetIndex = 11;
+      }
+      if(rightKeyPressed){
+        targetIndex = 5;
+      }
+    }
+  }
+
+  if(targetIndex != -1)
+  {
+    if (trialNum == 0) //check if first click, if so, start timer
+    startTime = millis();
+
+    if (trialNum == trials.size() - 1) //check if final click
+    {
+      finishTime = millis();
+      //write to terminal some output:
+      println("Hits: " + hits);
+      println("Misses: " + misses);
+      println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
+      println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
+      println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
+    }
+    
+    if(targetIndex == trials.get(trialNum)){
+      System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
+      hits++; 
+    } 
+    else
+    {
+      System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
+      misses++;
+    }
+    trialNum++; //Increment trial number
+    swipeBuffer = new ArrayList<Point>();
+  }
 }
 
 void keyPressed() 
 {
-  //can use the keyboard if you wish
-  //https://processing.org/reference/keyTyped_.html
-  //https://processing.org/reference/keyCode.html
+  swipeBuffer = new ArrayList<Point>();
+  
+  if(key == 'w'){
+    leftKeyPressed = false;
+    downKeyPressed = false;
+    rightKeyPressed = false;
+    upKeyPressed = true;
+    mousePoint = center1;
+  }
+  if(key == 'a'){
+    upKeyPressed = false;
+    downKeyPressed = false;
+    rightKeyPressed = false;
+    leftKeyPressed = true;
+    mousePoint = center2;
+  }
+  if(key == 's'){
+    leftKeyPressed = false;
+    upKeyPressed = false;
+    rightKeyPressed = false;
+    downKeyPressed = true;
+    mousePoint = center3;
+  }
+  if(key == 'd'){
+    leftKeyPressed = false;
+    downKeyPressed = false;
+    upKeyPressed = false;
+    rightKeyPressed = true;
+    mousePoint = center4;
+  }
+}
+
+void keyReleased()
+{
+  if(key == 'w' && upKeyPressed){
+     upKeyPressed = false;
+     mousePoint = center;
+  }
+  if(key == 'a' && leftKeyPressed){
+     leftKeyPressed = false;
+     mousePoint = center;
+  }
+  if(key == 's' && downKeyPressed){
+     downKeyPressed = false;
+     mousePoint = center;
+  }
+  if(key == 'd' && rightKeyPressed){
+     rightKeyPressed = false;
+     mousePoint = center;
+  }
 }
