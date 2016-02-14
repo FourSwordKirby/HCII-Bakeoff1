@@ -1,10 +1,11 @@
 import java.awt.AWTException;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Robot;
 import java.util.ArrayList;
 import java.util.Collections;
 import processing.core.PApplet;
+
+import java.awt.Robot;
 
 
 //when in doubt, consult the Processsing reference: https://processing.org/reference/
@@ -20,7 +21,8 @@ int hits = 0; //number of successful clicks
 int misses = 0; //number of missed clicks
 int numRepeats = 1; //sets the number of times each button repeats in the test
 
-LeapMotion leap;
+Robot robby;
+char quadrant = '\0';
 
 void setup() {
   size(700, 700, OPENGL); // set the size of the window
@@ -34,19 +36,22 @@ void setup() {
   background(0); //set background to black
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
 
+  robby = new Robot(); //create a "Java Robot" class that can move the system cursor
+
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
-  for (int i = 0; i < 16; i++) //generate list of targets and randomize the order
-      // number of buttons in 4x4 grid
+  // generate list of targets and randomize the order
+  for (int i = 0; i < 16; i++)
+    // number of buttons in 4x4 grid
     for (int k = 0; k < numRepeats; k++)
       // number of times each button repeats
       trials.add(i);
 
   Collections.shuffle(trials); // randomize the order of the buttons
-  System.out.println("trial order: " + trials);
+  println("trial order: " + trials);
 }
 
 void draw() {
-  // check to see if test is over
+  // Check to see if test is over
   if (trialNum >= trials.size()) {
     fill(255); //set fill color to white
     //write to screen (not console)
@@ -59,38 +64,40 @@ void draw() {
     return; //return, nothing else to do now test is over
   }
 
-  fill(255); //set fill color to white
-  text((trialNum + 1) + " of " + trials.size(), 40, 20); //display what trial the user is on
+  // Display trial number
+  fill(255); text((trialNum + 1) + " of " + trials.size(), 40, 20);
 
-  //draw the target point
-  fill(255, 0, 0, 200); // set fill color to translucent red
-
-  //draw the squares
-  for (int i = 0; i < 16; i++)// for all button
-    drawButton(i); //draw button
+  // Draw the squares
+  drawSquares();
 }
 
-//you can edit this method to change how buttons appear
-void drawButton(int i) {
-  Rectangle bounds = getButtonLocation(i);
+void drawSquares() {
+  for (int i = 0; i < 16; i++) {
+    Rectangle bounds = getButtonLocation(i);
 
-  if (trials.get(trialNum) == i) // see if current button is the target
-    fill(255, 255, 0); // if so, fill cyan
-  else if (trialNum + 1 < trials.size() && trials.get(trialNum + 1) == i)
-    fill(127, 127, 0);
-  else
-    fill(100); // if not, fill gray
+    if (trials.get(trialNum) == i) // see if current button is the target
+      fill(255, 255, 0); // if so, fill cyan
+    else if (trialNum + 1 < trials.size() && trials.get(trialNum + 1) == i)
+      fill(127, 127, 0);
+    else
+      fill(100); // if not, fill gray
 
-  beginShape();
-  vertex(bounds.x, bounds.y - bounds.height/2);
-  vertex(bounds.x - bounds.width/2, bounds.y);
-  vertex(bounds.x, bounds.y + bounds.height/2);
-  vertex(bounds.x + bounds.width/2, bounds.y);
-  endShape(CLOSE);
+    beginShape();
+    vertex(bounds.x, bounds.y - bounds.height/2);
+    vertex(bounds.x - bounds.width/2, bounds.y);
+    vertex(bounds.x, bounds.y + bounds.height/2);
+    vertex(bounds.x + bounds.width/2, bounds.y);
+    endShape(CLOSE);
+  }
 }
 
-//probably shouldn't have to edit this method
-//for a given button ID, what is its location and size
+// void drawCursor() {
+//   fill(200, 0, 0, 200);
+//   ellipse()
+// }
+
+// For a given button ID, what is its location and size
+// Probably shouldn't have to edit this method
 Rectangle getButtonLocation(int i) {
   int[] diamondX = {4, 3, 5, 2, 4, 6, 1, 3, 5, 7, 2, 4, 6, 3, 5, 4};
   int[] diamondY = {1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};
@@ -98,3 +105,26 @@ Rectangle getButtonLocation(int i) {
   int y = diamondY[i] * (padding + buttonSize);// + margin;
   return new Rectangle(x, y, buttonSize, buttonSize);
 }
+
+// Extra styling
+
+
+// Handle key presses
+  void keyPressed() {
+    if ("wasd".indexOf(key) >= 0) {
+      quadrant = key;
+    } else if (key == CODED) {
+      switch (keyCode) {
+        case LEFT:   quadrant = 'a'; break;
+        case UP:     quadrant = 'w'; break;
+        case RIGHT:  quadrant = 'd'; break;
+        case DOWN:   quadrant = 's'; break;
+      }
+    }
+
+    println(quadrant);
+  }
+
+  void keyReleased() {
+    quadrant = '\0';
+  }
