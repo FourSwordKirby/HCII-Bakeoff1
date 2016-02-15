@@ -35,8 +35,6 @@ void setup() {
   background(0); //set background to black
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
 
-  robby = new Robot(); //create a "Java Robot" class that can move the system cursor
-
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
   // generate list of targets and randomize the order
   for (int i = 0; i < 16; i++)
