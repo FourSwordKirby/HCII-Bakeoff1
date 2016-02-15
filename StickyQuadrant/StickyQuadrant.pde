@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import processing.core.PApplet;
+import java.awt.Robot;
 
 
 //when in doubt, consult the Processsing reference: https://processing.org/reference/
@@ -18,16 +19,17 @@ int finishTime = 0; //records the time of the final click
 int hits = 0; //number of successful clicks
 int misses = 0; //number of missed clicks
 int numRepeats = 1; //sets the number of times each button repeats in the test
+Robot robot; //initalized in setup
 
-int COLOR_SQUARE_FG = 0xFFFFFF00;
-int COLOR_SQUARE_HINT = 0xFF888800;
-int COLOR_NEUTRAL = 0x77FFFFFF;
-int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000;
-char quadrant = '\0';
-Point swipeOrigin = null;
-int swipeTolerance = 25;
-int swipeResetFrames = 10;
-int swipelessFrameCount = 0;
+int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
+int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
+int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
+int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
+int SWIPE_RESET_FRAMES = 10; // Number of frames to wait before 'ending' a swipe
+char quadrant = '\0'; // Either w, a, s, or d (if nothing use null char)
+Point swipeOrigin = null; // null if no swipe
+int swipelessFrameCount = 0; // current swipe frame count
+boolean ignoreMouseMove = false;
 
 void setup() {
   fullScreen();
@@ -38,6 +40,12 @@ void setup() {
   frameRate(60);
   ellipseMode(CENTER); //ellipses are drawn from the center (BUT RECTANGLES ARE NOT!)
   rectMode(CENTER); //enabling will break the scaffold code, but you might find it easier to work with centered rects
+
+  try {
+    robot = new Robot();
+  } catch (AWTException e) {
+    e.printStackTrace();
+  }
 
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
   // generate list of targets and randomize the order
@@ -185,20 +193,50 @@ Rectangle getButtonLocation(int i) {
 
   void updateSwipe() {
     if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
-      if (swipelessFrameCount < swipeResetFrames) {
+      if (swipelessFrameCount < SWIPE_RESET_FRAMES) {
         swipelessFrameCount++; // Wait a number of frames to reset swipe
       } else {
         float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
-        int cardinalDirection = 90 * (int)Math.round(angle / 90);
+        int dir = 90 * (int)Math.round(angle / 90);
+        handleSwipe(dir);
 
+        println(dir);
         swipelessFrameCount = 0;
         swipeOrigin = null;
+
+        // Reset mouse so we don't hit edge of screen after multiple swipes
+        ignoreMouseMove = true;
+        robot.mouseMove(width / 2, height / 2);
       }
     }
   }
 
+  void handleSwipe(int direction) {
+  // if task is over, just return
+  if (trialNum >= trials.size()) return;
+
+  // check if first click, if so, start timer
+  if (trialNum == 0) startTime = millis();
+
+  // check if final click
+  if (trialNum == trials.size() - 1) {
+    finishTime = millis();
+    // write to terminal some output:
+    println("Hits: " + hits);
+    println("Misses: " + misses);
+    println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
+    println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
+    println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
+  }
+
+  trialNum++; //Increment trial number
+}
+
+
   void mouseMoved() {
-    if (swipeOrigin == null)
+    if (ignoreMouseMove)
+      ignoreMouseMove = false;
+    else if (swipeOrigin == null)
       // Fresh swipe, save origin pos
       swipeOrigin = new Point(mouseX, mouseY);
   }
