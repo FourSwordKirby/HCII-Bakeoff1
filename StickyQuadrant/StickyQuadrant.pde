@@ -24,9 +24,13 @@ int COLOR_SQUARE_HINT = 0xFF888800;
 int COLOR_NEUTRAL = 0x77FFFFFF;
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000;
 char quadrant = '\0';
+Point swipeOrigin = null;
+int swipeTolerance = 25;
+int swipeResetFrames = 10;
+int swipelessFrameCount = 0;
 
 void setup() {
-  size(700, 700); // set the size of the window
+  fullScreen();
   noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
   textFont(createFont("Arial", 16)); //sets the font to Arial size 16
@@ -34,7 +38,6 @@ void setup() {
   frameRate(60);
   ellipseMode(CENTER); //ellipses are drawn from the center (BUT RECTANGLES ARE NOT!)
   rectMode(CENTER); //enabling will break the scaffold code, but you might find it easier to work with centered rects
-  frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
 
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
   // generate list of targets and randomize the order
@@ -68,12 +71,14 @@ void draw() {
   fill(255); text((trialNum + 1) + " of " + trials.size(), 40, 20);
 
 
-  // Highlight the selected quadrant (if arrow key down)
-  // if (quadrant != '\0') highlightQuadrant(quadrant);
+  // Highlight the selected quadrant
   if (quadrant != '\0') drawCursor(quadrant);
 
   // Draw the squares
   drawSquares();
+
+  // Update swipe data
+  updateSwipe();
 }
 
 void drawSquares() {
@@ -163,7 +168,7 @@ Rectangle getButtonLocation(int i) {
   }
 
 
-// Handle key presses
+// Handle user input
   void keyPressed() {
     if ("wasd".indexOf(key) >= 0) {
       quadrant = key;
@@ -175,10 +180,25 @@ Rectangle getButtonLocation(int i) {
         case DOWN:   quadrant = 's'; break;
       }
     }
-
-    println(quadrant);
   }
 
-  void keyReleased() {
-    quadrant = '\0';
+
+  void updateSwipe() {
+    if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
+      if (swipelessFrameCount < swipeResetFrames) {
+        swipelessFrameCount++; // Wait a number of frames to reset swipe
+      } else {
+        float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
+        int cardinalDirection = 90 * (int)Math.round(angle / 90);
+
+        swipelessFrameCount = 0;
+        swipeOrigin = null;
+      }
+    }
+  }
+
+  void mouseMoved() {
+    if (swipeOrigin == null)
+      // Fresh swipe, save origin pos
+      swipeOrigin = new Point(mouseX, mouseY);
   }
