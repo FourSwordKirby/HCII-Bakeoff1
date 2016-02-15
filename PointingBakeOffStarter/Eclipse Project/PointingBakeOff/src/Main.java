@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import processing.core.PApplet;
 
-
+/* start code */
 public class Main extends PApplet
 {
 	//when in doubt, consult the Processsing reference: https://processing.org/reference/
