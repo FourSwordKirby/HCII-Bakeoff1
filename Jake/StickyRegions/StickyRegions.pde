@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import processing.core.PApplet;
 
-import java.awt.Robot;
-
 
 //when in doubt, consult the Processsing reference: https://processing.org/reference/
 
@@ -21,10 +19,14 @@ int hits = 0; //number of successful clicks
 int misses = 0; //number of missed clicks
 int numRepeats = 1; //sets the number of times each button repeats in the test
 
+int COLOR_SQUARE_FG = 0xFFFFFF00;
+int COLOR_SQUARE_HINT = 0xFF888800;
+int COLOR_NEUTRAL = 0x77FFFFFF;
+int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000;
 char quadrant = '\0';
 
 void setup() {
-  size(700, 700, OPENGL); // set the size of the window
+  size(700, 700); // set the size of the window
   noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
   textFont(createFont("Arial", 16)); //sets the font to Arial size 16
@@ -32,10 +34,7 @@ void setup() {
   frameRate(60);
   ellipseMode(CENTER); //ellipses are drawn from the center (BUT RECTANGLES ARE NOT!)
   rectMode(CENTER); //enabling will break the scaffold code, but you might find it easier to work with centered rects
-  background(0); //set background to black
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
-
-  robby = new Robot(); //create a "Java Robot" class that can move the system cursor
 
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
   // generate list of targets and randomize the order
@@ -50,6 +49,8 @@ void setup() {
 }
 
 void draw() {
+  background(0); //set background to black
+
   // Check to see if test is over
   if (trialNum >= trials.size()) {
     fill(255); //set fill color to white
@@ -66,6 +67,11 @@ void draw() {
   // Display trial number
   fill(255); text((trialNum + 1) + " of " + trials.size(), 40, 20);
 
+
+  // Highlight the selected quadrant (if arrow key down)
+  // if (quadrant != '\0') highlightQuadrant(quadrant);
+  if (quadrant != '\0') drawCursor(quadrant);
+
   // Draw the squares
   drawSquares();
 }
@@ -75,11 +81,11 @@ void drawSquares() {
     Rectangle bounds = getButtonLocation(i);
 
     if (trials.get(trialNum) == i) // see if current button is the target
-      fill(255, 255, 0); // if so, fill cyan
+      fill(COLOR_SQUARE_FG);
     else if (trialNum + 1 < trials.size() && trials.get(trialNum + 1) == i)
-      fill(127, 127, 0);
+      fill(COLOR_SQUARE_HINT);
     else
-      fill(100); // if not, fill gray
+      fill(COLOR_NEUTRAL);
 
     beginShape();
     vertex(bounds.x, bounds.y - bounds.height/2);
@@ -89,11 +95,6 @@ void drawSquares() {
     endShape(CLOSE);
   }
 }
-
-// void drawCursor() {
-//   fill(200, 0, 0, 200);
-//   ellipse()
-// }
 
 // For a given button ID, what is its location and size
 // Probably shouldn't have to edit this method
@@ -106,6 +107,60 @@ Rectangle getButtonLocation(int i) {
 }
 
 // Extra styling
+  void drawCursor(char quad) {
+    Point center;
+    fill(COLOR_QUADRANT_HIGHLIGHT);
+
+    switch (quad) {
+      case 'w': center = new Point(getButtonLocation(0).x, getButtonLocation(1).y);
+                break;
+      case 'a': center = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
+                break;
+      case 's': center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
+                break;
+      case 'd': center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
+                break;
+      default: return;
+    }
+
+    ellipse(center.x, center.y, 20, 20);
+  }
+
+  void highlightQuadrant(char quad) {
+    fill(COLOR_QUADRANT_HIGHLIGHT);
+    Rectangle r1, r2, r3, r4;
+
+    switch (quad) {
+      case 'w': r1 = getButtonLocation(0);
+                r2 = getButtonLocation(1);
+                r3 = getButtonLocation(2);
+                r4 = getButtonLocation(4);
+                break;
+      case 'a': r1 = getButtonLocation(3);
+                r2 = getButtonLocation(6);
+                r3 = getButtonLocation(7);
+                r4 = getButtonLocation(10);
+                break;
+      case 's': r1 = getButtonLocation(11);
+                r2 = getButtonLocation(13);
+                r3 = getButtonLocation(14);
+                r4 = getButtonLocation(15);
+                break;
+      case 'd': r1 = getButtonLocation(5);
+                r2 = getButtonLocation(8);
+                r3 = getButtonLocation(9);
+                r4 = getButtonLocation(12);
+                break;
+      default: return;
+    }
+
+    beginShape();
+    vertex(r4.x, r4.y + r4.height / 2);
+    vertex(r2.x - r2.width / 2, r2.y);
+    vertex(r1.x, r1.y - r1.height / 2);
+    vertex(r3.x + r3.width / 2, r3.y);
+    endShape(CLOSE);
+  }
 
 
 // Handle key presses
