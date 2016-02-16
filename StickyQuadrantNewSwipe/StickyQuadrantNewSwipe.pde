@@ -25,21 +25,10 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
-int SWIPE_RESET_FRAMES = 10; // Number of frames to wait before 'ending' a swipe
-int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
-  {0, 1, 2, 4},
-  {3, 7, 6, 10},
-  {5, 8, 9, 12},
-  {11, 13, 14, 15},
-};
-int quadrant = 0; // 0 = up, 1 = left, 2 = right, 3 = down
-Point swipeOrigin = null; // null if no swipe
-int swipelessFrameCount = 0; // current swipe frame count
-boolean ignoreMouseMove = false;
 
 void setup() {
   fullScreen();
-  noCursor(); //hides the system cursor if you want
+  // noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
   textFont(createFont("Arial", 16)); //sets the font to Arial size 16
   textAlign(CENTER);
@@ -52,6 +41,7 @@ void setup() {
   } catch (AWTException e) {
     e.printStackTrace();
   }
+
 
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
   // generate list of targets and randomize the order
@@ -91,10 +81,8 @@ void draw() {
   // Draw the squares
   drawSquares();
 
-  //Used to check if the mouse hits the box
+  // Used to check if the mouse hits the box
   checkBoxCollision();
-  // Update swipe data
-  //updateSwipe();
 }
 
 void checkBoxCollision(){
@@ -113,10 +101,10 @@ void drawSquares() {
       fill(COLOR_NEUTRAL);
 
     beginShape();
-    vertex(bounds.x - bounds.width/2, bounds.y - bounds.height/2);
-    vertex(bounds.x + bounds.width/2, bounds.y - bounds.height/2);
-    vertex(bounds.x + bounds.width/2, bounds.y + bounds.height/2);
-    vertex(bounds.x - bounds.width/2, bounds.y + bounds.height/2);
+    vertex(bounds.x, bounds.y - bounds.height/2);
+    vertex(bounds.x - bounds.width/2, bounds.y);
+    vertex(bounds.x, bounds.y + bounds.height/2);
+    vertex(bounds.x + bounds.width/2, bounds.y);
     endShape(CLOSE);
   }
 }
@@ -128,117 +116,23 @@ Rectangle getButtonLocation(int i) {
   int[] diamondY = {1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};
   int x = diamondX[i] * (padding + buttonSize);// + margin;
   int y = diamondY[i] * (padding + buttonSize);// + margin;
-  return new Rectangle(x, y, 2 * buttonSize, 2 * buttonSize);
+  return new Rectangle(x, y, buttonSize, buttonSize);
 }
-
-// Extra styling
-  void drawCursor() {
-    Point center;
-    fill(COLOR_QUADRANT_HIGHLIGHT);
-
-    switch (quadrant) {
-      case 0:
-        center = new Point(getButtonLocation(0).x, getButtonLocation(1).y);
-        break;
-      case 1:
-        center = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
-        break;
-      case 3:
-        center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
-        break;
-      case 2:
-        center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
-        break;
-      default: return;
-    }
-
-    ellipse(center.x, center.y, 20, 20);
-  }
 
 // Handle user input
   void keyPressed() {
-    if ("wads".indexOf(key) >= 0) {
-      quadrant = "wads".indexOf(key);
-    } else if (key == CODED) {
-      switch (keyCode) {
-        case UP:     quadrant = 0; break;
-        case LEFT:   quadrant = 1; break;
-        case RIGHT:  quadrant = 2; break;
-        case DOWN:   quadrant = 3; break;
-      }
-    }
+    if (key == 'w' || keyCode == UP)
+      robot.mouseMove(getButtonLocation(0).x, getButtonLocation(1).y);
+    else if (key == 'a' || keyCode == LEFT)
+      robot.mouseMove(getButtonLocation(3).x, getButtonLocation(6).y);
+    else if (key == 's' || keyCode == DOWN)
+      robot.mouseMove(getButtonLocation(15).x, getButtonLocation(13).y);
+    else if (key == 'd' || keyCode == RIGHT)
+      robot.mouseMove(getButtonLocation(5).x, getButtonLocation(9).y);
   }
 
-
-  void updateSwipe() {
-    if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
-      if (swipelessFrameCount < SWIPE_RESET_FRAMES) {
-        swipelessFrameCount++; // Wait a number of frames to reset swipe
-      } else {
-        float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
-        handleSwipe(angleToDirection(angle));
-
-        swipelessFrameCount = 0;
-        swipeOrigin = null;
-
-        // Reset mouse so we don't hit edge of screen after multiple swipes
-        ignoreMouseMove = true;
-        robot.mouseMove(width / 2, height / 2);
-      }
-    }
-  }
-
-  void handleSwipe(int direction) {
-    if (direction == -1) return; // something went wrong
-
-    // if task is over, just return
-    if (trialNum >= trials.size()) return;
-
-    // check if first click, if so, start timer
-    if (trialNum == 0) startTime = millis();
-
-    // check if final click
-    if (trialNum == trials.size() - 1) {
-      finishTime = millis();
-      // write to terminal some output:
-      println("Hits: " + hits);
-      println("Misses: " + misses);
-      println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
-      println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
-      println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
-    }
-
-
-    println(quadrant);
-    if (TARGETS_BY_QUADRANT[quadrant][direction] == trials.get(trialNum)) {
-      println("HIT! " + trialNum + " " + (millis() - startTime));
-      hits++;
-    } else {
-      println("MISSED! " + trialNum + " " + (millis() - startTime));
-      misses++;
-    }
-
-    trialNum++; //Increment trial number
-  }
-
-  int angleToDirection(float angle) {
-    println(angle);
-    int cardinal = 90 * (int)Math.round(angle / 90);
-    println(cardinal);
-    switch (cardinal) {
-      case -180:
-      case 180: return 0;
-      case -90: return 1;
-      case 90: return 2;
-      case 0: return 3;
-    }
-    return -1;
-  }
-
-  void mouseMoved() {
-    if (ignoreMouseMove)
-      ignoreMouseMove = false;
-    else if (swipeOrigin == null)
-      // Fresh swipe, save origin pos
-      swipeOrigin = new Point(mouseX, mouseY);
+  void drawCursor() {
+    Point center = new Point(mouseX, mouseY);
+    fill(COLOR_QUADRANT_HIGHLIGHT);
+    ellipse(center.x, center.y, 20, 20);
   }
