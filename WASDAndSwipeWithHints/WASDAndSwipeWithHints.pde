@@ -32,7 +32,9 @@ int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
   {5, 8, 9, 12},
   {11, 13, 14, 15},
 };
-int[] QUADRANTS_BY_TARGET = { 0, 0, 0, 1, 0, 2, 1, 1, 2, 2, 1, 3, 2, 3, 3, 3 };
+String[] QUADRANTS_BY_TARGET = { "1", "1", "1", "2", "1", "3", "2", "2", "3", "3", "2", "4", "3", "4", "4", "4" };
+// String[] QUADRANTS_BY_TARGET = { "w", "w", "w", "a", "w", "d", "a", "a", "d", "d", "a", "s", "d", "s", "s", "s" };
+int[] DIRECTIONS_BY_TARGET = { 0, 1, 2, 0, 3, 0, 1, 2, 1, 2, 3, 0, 3, 1, 2, 3 };
 int quadrant = -1; // 0 = up, 1 = left, 2 = right, 3 = down
 Point swipeOrigin = null; // null if no swipe
 int swipelessFrameCount = 0; // current swipe frame count
@@ -129,12 +131,30 @@ void drawSquares() {
 }
 
 void drawNextMoves() {
-  if (quadrant == -1) {
-    trials.get(trialNum);
-    // Display their quadrant move
+  if (trialNum >= trials.size()) return;
+  // if (quadrant != -1) return;
 
+  int target = trials.get(trialNum);
+  Point p1 = new Point(width/2, height/2);
+  Point p2 = new Point(width/2 + 50, height/2);
+  Point p3 = new Point(width/2 + 150, height/2);
+  Point p4 = new Point(width/2 + 200, height/2);
+
+  // Display their quadrant move
+  String dir1 = QUADRANTS_BY_TARGET[target];
+  int dir2 = DIRECTIONS_BY_TARGET[target];
+
+  fill(0xFF00FFFF); text(dir1, p1.x, p1.y);
+  drawArrow(p2, 30, dir2, 0xFF00FFFF);
+
+
+  if (trialNum + 1 < trials.size()) {
+    int next_target = trials.get(trialNum + 1);
+    dir1 = QUADRANTS_BY_TARGET[next_target];
+    dir2 = DIRECTIONS_BY_TARGET[next_target];
+    fill(0x5500FFFF); text(dir1, p3.x, p3.y);
+    drawArrow(p4, 30, dir2, 0x5500FFFF);
   }
-  drawArrow(new Point(width / 2, height / 2), 30, 0);
 }
 
 // For a given button ID, what is its location and size
@@ -172,7 +192,18 @@ Rectangle getButtonLocation(int i) {
   }
 
 // Handle user input
-  void keyReleased() { if (keyCode == SHIFT) quadrant = -1; }
+  void keyPressed() {
+    quadrant = "1234".indexOf(key);
+
+    if (quadrant == -1 && key == CODED) {
+      switch (keyCode) {
+        case UP:     quadrant = 0; break;
+        case LEFT:   quadrant = 1; break;
+        case RIGHT:  quadrant = 2; break;
+        case DOWN:   quadrant = 3; break;
+      }
+    }
+  }
 
   void updateSwipe() {
     if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
@@ -181,14 +212,8 @@ Rectangle getButtonLocation(int i) {
       } else {
         float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
         int dir = angleToDirection(angle);
-        if (quadrant == -1) {
-          // First swipe, set quadrant
-          quadrant = dir;
-        } else {
-          handleSwipe(dir);
-          quadrant = -1;
-        }
-
+        handleSwipe(dir);
+        quadrant = -1;
         swipelessFrameCount = 0;
         swipeOrigin = null;
 
@@ -254,9 +279,18 @@ Rectangle getButtonLocation(int i) {
       swipeOrigin = new Point(mouseX, mouseY);
   }
 
-  void drawArrow(Point center, int len, float angle) {
+  void drawArrow(Point center, int len, int direction, int fill) {
+    if (direction == -1) return;
+
+    float angle = 0f;
+    switch (direction) {
+      case 0: angle = -90f; break;
+      case 1: angle = 180f; break;
+      case 2: angle = 0f; break;
+      case 3: angle = 90f; break;
+    }
     strokeWeight(10);
-    stroke(0,50,200);
+    stroke(fill);
     pushMatrix();
     translate(center.x, center.y);
     rotate(radians(angle));
