@@ -20,6 +20,7 @@ Robot robot; //initalized in setup
 
 int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0x44888800; // Up next target
+int COLOR_SQUARE_SELECTED = 0xFF00AAFF;
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
 
@@ -85,8 +86,8 @@ void draw()
 
   initTruePoint();
 
-  fill(255, 0, 0, 200); // set fill color to translucent red
-  ellipse(trueX, trueY, 20, 20); //draw user cursor as a circle with a diameter of 20
+  //fill(255, 0, 0, 200); // set fill color to translucent red
+  //ellipse(trueX, trueY, 20, 20); //draw user cursor as a circle with a diameter of 20
   
   textFont(createFont("Arial", 12)); //sets the font to Arial size 16
   fill(255); text("Use spacebar to select target.", width / 2, height - 50);
@@ -126,10 +127,8 @@ void mousePressed() // test to see if hit was in target!
     println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
   }
 
-  Rectangle bounds = getButtonLocation(trials.get(trialNum));
-
  //check to see if mouse cursor is inside button 
-  if ((trueX == bounds.x) && (trueY == bounds.y)) // test to see if hit was within bounds
+  if (isTargetSelected(trials.get(trialNum))) // test to see if hit was within bounds
   {
     System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
     hits++; 
@@ -142,6 +141,12 @@ void mousePressed() // test to see if hit was in target!
 
   trialNum++; //Increment trial number
 }  
+
+boolean isTargetSelected(int target) 
+{
+  Rectangle bounds = getButtonLocation(target);
+  return (trueX == bounds.x) && (trueY == bounds.y);
+}
 
 //probably shouldn't have to edit this method
 Rectangle getButtonLocation(int i) //for a given button ID, what is its location and size
@@ -162,7 +167,8 @@ void drawButton(int i)
     rect(bounds.x, bounds.y, bounds.width*2, bounds.height*2);
   }
 
-  if (trials.get(trialNum) == i) fill(COLOR_SQUARE_FG);
+  if (isTargetSelected(i)) fill(COLOR_SQUARE_SELECTED);
+  else if (trials.get(trialNum) == i) fill(COLOR_SQUARE_FG);
   else fill(COLOR_NEUTRAL);
 
   rect(bounds.x, bounds.y, bounds.width, bounds.height); //draw button
