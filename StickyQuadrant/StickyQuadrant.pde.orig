@@ -52,7 +52,6 @@ void setup() {
   } catch (AWTException e) {
     e.printStackTrace();
   }
-
   ignoreMouseMove = true;
   robot.mouseMove(width / 2, height / 2);
 
@@ -255,6 +254,7 @@ Rectangle getButtonLocation(int i) {
       // Fresh swipe, save origin pos
       swipeOrigin = new Point(mouseX, mouseY);
   }
+}
 
   void drawArrow(Point center, int len, float angle) {
     strokeWeight(10);

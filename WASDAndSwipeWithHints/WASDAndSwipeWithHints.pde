@@ -25,14 +25,15 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
-int SWIPE_RESET_FRAMES = 1; // Number of frames to wait before 'ending' a swipe
+int SWIPE_RESET_FRAMES = 8; // Number of frames to wait before 'ending' a swipe
 int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
   {0, 1, 2, 4},
   {3, 6, 7, 10},
   {5, 8, 9, 12},
   {11, 13, 14, 15},
 };
-int quadrant = 0; // 0 = up, 1 = left, 2 = right, 3 = down
+int[] QUADRANTS_BY_TARGET = { 0, 0, 0, 1, 0, 2, 1, 1, 2, 2, 1, 3, 2, 3, 3, 3 };
+int quadrant = -1; // 0 = up, 1 = left, 2 = right, 3 = down
 Point swipeOrigin = null; // null if no swipe
 int swipelessFrameCount = 0; // current swipe frame count
 boolean ignoreMouseMove = false;
@@ -52,7 +53,6 @@ void setup() {
   } catch (AWTException e) {
     e.printStackTrace();
   }
-
   ignoreMouseMove = true;
   robot.mouseMove(width / 2, height / 2);
 
@@ -129,6 +129,11 @@ void drawSquares() {
 }
 
 void drawNextMoves() {
+  if (quadrant == -1) {
+    trials.get(trialNum);
+    // Display their quadrant move
+
+  }
   drawArrow(new Point(width / 2, height / 2), 30, 0);
 }
 
@@ -154,11 +159,11 @@ Rectangle getButtonLocation(int i) {
       case 1:
         center = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
         break;
-      case 3:
-        center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
-        break;
       case 2:
         center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
+        break;
+      case 3:
+        center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
         break;
       default: return;
     }
@@ -167,19 +172,7 @@ Rectangle getButtonLocation(int i) {
   }
 
 // Handle user input
-  void keyPressed() {
-    if ("wads".indexOf(key) >= 0) {
-      quadrant = "wads".indexOf(key);
-    } else if (key == CODED) {
-      switch (keyCode) {
-        case UP:     quadrant = 0; break;
-        case LEFT:   quadrant = 1; break;
-        case RIGHT:  quadrant = 2; break;
-        case DOWN:   quadrant = 3; break;
-      }
-    }
-  }
-
+  void keyReleased() { if (keyCode == SHIFT) quadrant = -1; }
 
   void updateSwipe() {
     if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
@@ -187,7 +180,14 @@ Rectangle getButtonLocation(int i) {
         swipelessFrameCount++; // Wait a number of frames to reset swipe
       } else {
         float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
-        handleSwipe(angleToDirection(angle));
+        int dir = angleToDirection(angle);
+        if (quadrant == -1) {
+          // First swipe, set quadrant
+          quadrant = dir;
+        } else {
+          handleSwipe(dir);
+          quadrant = -1;
+        }
 
         swipelessFrameCount = 0;
         swipeOrigin = null;
@@ -202,7 +202,7 @@ Rectangle getButtonLocation(int i) {
   }
 
   void handleSwipe(int direction) {
-    if (direction == -1) return; // something went wrong
+    if (direction == -1 || quadrant == -1) return; // something went wrong
 
     // if task is over, just return
     if (trialNum >= trials.size()) return;
@@ -221,8 +221,6 @@ Rectangle getButtonLocation(int i) {
       println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
     }
 
-
-    println(quadrant);
     if (TARGETS_BY_QUADRANT[quadrant][direction] == trials.get(trialNum)) {
       println("HIT! " + trialNum + " " + (millis() - startTime));
       hits++;

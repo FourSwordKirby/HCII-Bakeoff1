@@ -25,7 +25,7 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
-int SWIPE_RESET_FRAMES = 8; // Number of frames to wait before 'ending' a swipe
+int SWIPE_RESET_FRAMES = 1; // Number of frames to wait before 'ending' a swipe
 Point swipeOrigin = null; // null if no swipe
 int swipelessFrameCount = 0; // current swipe frame count
 boolean ignoreMouseMove = false;
@@ -149,7 +149,7 @@ Rectangle getButtonLocation(int i) {
         case 2:
           center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
           break;
-        case 4: 
+        case 4:
           center = new Point(getButtonLocation(4).x, getButtonLocation(7).y);
           break;
         default: return;
@@ -157,7 +157,7 @@ Rectangle getButtonLocation(int i) {
 
       ellipse(center.x, center.y, 20, 20);
     }
-  
+
   void highlightQuadrant() {
     fill(COLOR_QUADRANT_HIGHLIGHT);
     Rectangle r1, r2, r3, r4;
@@ -205,7 +205,7 @@ Rectangle getButtonLocation(int i) {
     }
     return -1;
   }
-  
+
 // Handle user input
   void keyPressed() {
     if (key == CODED){
@@ -224,7 +224,7 @@ Rectangle getButtonLocation(int i) {
       } else {
         float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
         firstSwipe = !firstSwipe;
-        if (firstSwipe){ 
+        if (firstSwipe){
           quadrant = dir2quad(angle);
         }
         else{ //we're on the 2nd swipe
@@ -243,13 +243,13 @@ Rectangle getButtonLocation(int i) {
   }
 
   void handleSwipe(int dir) {
-    if (direction == -1) return; 
+    if (direction == -1) return;
     // if task is over, just return
     if (trialNum >= trials.size()) return;
-  
+
     // check if first click, if so, start timer
     if (trialNum == 0) startTime = millis();
-  
+
     // check if final click
     if (trialNum == trials.size() - 1) {
       finishTime = millis();
@@ -260,10 +260,10 @@ Rectangle getButtonLocation(int i) {
       println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
       println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
     }
-  
+
     if (TARGETS_BY_QUADRANT[quadrant][direction] == trials.get(trialNum)){
       System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
-      hits++; 
+      hits++;
     }
     else {
       System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
