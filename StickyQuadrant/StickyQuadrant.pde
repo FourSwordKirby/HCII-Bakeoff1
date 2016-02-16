@@ -25,10 +25,10 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
-int SWIPE_RESET_FRAMES = 10; // Number of frames to wait before 'ending' a swipe
+int SWIPE_RESET_FRAMES = 8; // Number of frames to wait before 'ending' a swipe
 int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
   {0, 1, 2, 4},
-  {3, 7, 6, 10},
+  {3, 6, 7, 10},
   {5, 8, 9, 12},
   {11, 13, 14, 15},
 };
@@ -39,7 +39,7 @@ boolean ignoreMouseMove = false;
 
 void setup() {
   fullScreen();
-  noCursor(); //hides the system cursor if you want
+  // noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
   textFont(createFont("Arial", 16)); //sets the font to Arial size 16
   textAlign(CENTER);
@@ -52,6 +52,9 @@ void setup() {
   } catch (AWTException e) {
     e.printStackTrace();
   }
+
+  ignoreMouseMove = true;
+  robot.mouseMove(width / 2, height / 2);
 
   //===DON'T MODIFY MY RANDOM ORDERING CODE==
   // generate list of targets and randomize the order
@@ -179,6 +182,8 @@ Rectangle getButtonLocation(int i) {
         ignoreMouseMove = true;
         robot.mouseMove(width / 2, height / 2);
       }
+    } else {
+      swipelessFrameCount = 0;
     }
   }
 
