@@ -137,8 +137,8 @@ void drawNextMoves() {
   int target = trials.get(trialNum);
   Point p1 = new Point(width/2, height/2);
   Point p2 = new Point(width/2 + 50, height/2);
-  Point p3 = new Point(width/2 + 150, height/2);
-  Point p4 = new Point(width/2 + 200, height/2);
+  Point p3 = new Point(width/2 + 200, height/2);
+  Point p4 = new Point(width/2 + 250, height/2);
 
   // Display their quadrant move
   String dir1 = QUADRANTS_BY_TARGET[target];
