@@ -87,6 +87,11 @@ void draw()
 
   fill(255, 0, 0, 200); // set fill color to translucent red
   ellipse(trueX, trueY, 20, 20); //draw user cursor as a circle with a diameter of 20
+  
+  textFont(createFont("Arial", 12)); //sets the font to Arial size 16
+  fill(255); text("Use spacebar to select target.", width / 2, height - 50);
+  fill(255); text("Upcoming target's background is highlighted in yellow.", width / 2, height - 30);
+  textFont(createFont("Arial", 16)); //sets the font to Arial size 16
 }
 
 void initTruePoint()
