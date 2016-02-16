@@ -86,7 +86,50 @@ void draw() {
 }
 
 void checkBoxCollision(){
-  print("TODO:");
+  int targetIndex = trials.get(trialNum);
+  boolean selected = false;
+  
+  for(int i = 0; i < 16; i++){
+    Rectangle bounds = getButtonLocation(i);
+    
+    if(targetIndex == i)
+    {
+      if ((mouseX > bounds.x - bounds.width && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y - bounds.height && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
+      {
+        println("HIT! " + trialNum + " " + (millis() - startTime));
+        hits++;
+        selected = true;
+      }
+    }
+    else
+    {
+      if ((mouseX > bounds.x - bounds.width && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y - bounds.height && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
+      {
+        println("MISSED! " + trialNum + " " + (millis() - startTime));
+        misses++;
+        selected = true;
+      }
+    }
+  } 
+  if(selected){
+     // if task is over, just return
+    if (trialNum >= trials.size()) return;
+  
+    // check if first click, if so, start timer
+    if (trialNum == 0) startTime = millis();
+  
+    // check if final click
+    if (trialNum == trials.size() - 1) {
+      finishTime = millis();
+      // write to terminal some output:
+      println("Hits: " + hits);
+      println("Misses: " + misses);
+      println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
+      println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
+      println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
+    }
+    trialNum++; //Increment trial number
+  }
 }
 
 void drawSquares() {
