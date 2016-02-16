@@ -25,7 +25,7 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
-int SWIPE_RESET_FRAMES = 10; // Number of frames to wait before 'ending' a swipe
+int SWIPE_RESET_FRAMES = 8; // Number of frames to wait before 'ending' a swipe
 int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
   {0, 1, 2, 4},
   {3, 6, 7, 10},
