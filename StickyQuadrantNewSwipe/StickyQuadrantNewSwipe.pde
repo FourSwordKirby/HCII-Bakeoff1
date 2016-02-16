@@ -25,6 +25,7 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
+boolean ignoreMouseMove = true;
 
 void setup() {
   fullScreen();
@@ -85,13 +86,15 @@ void draw() {
   checkBoxCollision();
 }
 
-void checkBoxCollision(){
+void checkBoxCollision() {
+  if (ignoreMouseMove) return;
+
   int targetIndex = trials.get(trialNum);
   boolean selected = false;
-  
+
   for(int i = 0; i < 16; i++){
     Rectangle bounds = getButtonLocation(i);
-    
+
     if(targetIndex == i)
     {
       if ((mouseX > bounds.x - bounds.width && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y - bounds.height && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
@@ -110,14 +113,14 @@ void checkBoxCollision(){
         selected = true;
       }
     }
-  } 
+  }
   if(selected){
      // if task is over, just return
     if (trialNum >= trials.size()) return;
-  
+
     // check if first click, if so, start timer
     if (trialNum == 0) startTime = millis();
-  
+
     // check if final click
     if (trialNum == trials.size() - 1) {
       finishTime = millis();
@@ -128,6 +131,10 @@ void checkBoxCollision(){
       println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
       println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
     }
+
+    robot.mouseMove(getButtonLocation(4).x, getButtonLocation(7).y);
+    ignoreMouseMove = true;
+
     trialNum++; //Increment trial number
   }
 }
@@ -144,10 +151,10 @@ void drawSquares() {
       fill(COLOR_NEUTRAL);
 
     beginShape();
-    vertex(bounds.x, bounds.y - bounds.height/2);
-    vertex(bounds.x - bounds.width/2, bounds.y);
-    vertex(bounds.x, bounds.y + bounds.height/2);
-    vertex(bounds.x + bounds.width/2, bounds.y);
+    vertex(bounds.x - bounds.width/2, bounds.y - bounds.height/2);
+    vertex(bounds.x + bounds.width/2, bounds.y - bounds.height/2);
+    vertex(bounds.x + bounds.width/2, bounds.y + bounds.height/2);
+    vertex(bounds.x - bounds.width/2, bounds.y + bounds.height/2);
     endShape(CLOSE);
   }
 }
@@ -159,11 +166,13 @@ Rectangle getButtonLocation(int i) {
   int[] diamondY = {1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};
   int x = diamondX[i] * (padding + buttonSize);// + margin;
   int y = diamondY[i] * (padding + buttonSize);// + margin;
-  return new Rectangle(x, y, buttonSize, buttonSize);
+  return new Rectangle(x, y, 2 * buttonSize, 2 * buttonSize);
 }
 
 // Handle user input
   void keyPressed() {
+    ignoreMouseMove = false;
+
     if (key == 'w' || keyCode == UP)
       robot.mouseMove(getButtonLocation(0).x, getButtonLocation(1).y);
     else if (key == 'a' || keyCode == LEFT)

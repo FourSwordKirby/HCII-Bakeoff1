@@ -39,7 +39,7 @@ boolean ignoreMouseMove = false;
 
 void setup() {
   fullScreen();
-  // noCursor(); //hides the system cursor if you want
+  noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
   textFont(createFont("Arial", 16)); //sets the font to Arial size 16
   textAlign(CENTER);
@@ -52,7 +52,6 @@ void setup() {
   } catch (AWTException e) {
     e.printStackTrace();
   }
-
   ignoreMouseMove = true;
   robot.mouseMove(width / 2, height / 2);
 
@@ -96,6 +95,16 @@ void draw() {
 
   // Update swipe data
   updateSwipe();
+
+  // update hints
+  drawNextMoves();
+
+  // Separate quadrants
+  stroke(COLOR_QUADRANT_HIGHLIGHT);
+  strokeWeight(10);
+  line(getButtonLocation(6).x, getButtonLocation(0).y, getButtonLocation(9).x, getButtonLocation(15).y);
+  line(getButtonLocation(9).x, getButtonLocation(0).y, getButtonLocation(6).x, getButtonLocation(15).y);
+  noStroke();
 }
 
 void drawSquares() {
@@ -116,6 +125,10 @@ void drawSquares() {
     vertex(bounds.x + bounds.width/2, bounds.y);
     endShape(CLOSE);
   }
+}
+
+void drawNextMoves() {
+  drawArrow(new Point(width / 2, height / 2), 30, 0);
 }
 
 // For a given button ID, what is its location and size
@@ -240,4 +253,17 @@ Rectangle getButtonLocation(int i) {
     else if (swipeOrigin == null)
       // Fresh swipe, save origin pos
       swipeOrigin = new Point(mouseX, mouseY);
+  }
+
+  void drawArrow(Point center, int len, float angle) {
+    strokeWeight(10);
+    stroke(0,50,200);
+    pushMatrix();
+    translate(center.x, center.y);
+    rotate(radians(angle));
+    line(0,0,len, 0);
+    line(len, 0, len - 8, -8);
+    line(len, 0, len - 8, 8);
+    popMatrix();
+    noStroke();
   }

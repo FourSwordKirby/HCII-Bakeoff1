@@ -25,19 +25,18 @@ int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0xFF888800; // Up next target
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
-int SWIPE_RESET_FRAMES = 1; // Number of frames to wait before 'ending' a swipe
+int SWIPE_RESET_FRAMES = 8; // Number of frames to wait before 'ending' a swipe
+int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
+  {0, 1, 2, 4},
+  {3, 6, 7, 10},
+  {5, 8, 9, 12},
+  {11, 13, 14, 15},
+};
+int[] QUADRANTS_BY_TARGET = { 0, 0, 0, 1, 0, 2, 1, 1, 2, 2, 1, 3, 2, 3, 3, 3 };
+int quadrant = -1; // 0 = up, 1 = left, 2 = right, 3 = down
 Point swipeOrigin = null; // null if no swipe
 int swipelessFrameCount = 0; // current swipe frame count
 boolean ignoreMouseMove = false;
-boolean firstSwipe = false;
-int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
-      {0, 1, 2, 4},
-      {3, 6, 7, 10},
-      {5, 8, 9, 12},
-      {11, 13, 14, 15},
-    };
-int quadrant = 4; // 0 = up, 1 = left, 2 = right, 3 = down
-int direction = -1;
 
 void setup() {
   fullScreen();
@@ -54,7 +53,6 @@ void setup() {
   } catch (AWTException e) {
     e.printStackTrace();
   }
-
   ignoreMouseMove = true;
   robot.mouseMove(width / 2, height / 2);
 
@@ -68,7 +66,6 @@ void setup() {
 
   Collections.shuffle(trials); // randomize the order of the buttons
   println("trial order: " + trials);
-  println("quadrant num: " + quadrant);
 }
 
 void draw() {
@@ -99,6 +96,16 @@ void draw() {
 
   // Update swipe data
   updateSwipe();
+
+  // update hints
+  drawNextMoves();
+
+  // Separate quadrants
+  stroke(COLOR_QUADRANT_HIGHLIGHT);
+  strokeWeight(10);
+  line(getButtonLocation(6).x, getButtonLocation(0).y, getButtonLocation(9).x, getButtonLocation(15).y);
+  line(getButtonLocation(9).x, getButtonLocation(0).y, getButtonLocation(6).x, getButtonLocation(15).y);
+  noStroke();
 }
 
 void drawSquares() {
@@ -121,6 +128,15 @@ void drawSquares() {
   }
 }
 
+void drawNextMoves() {
+  if (quadrant == -1) {
+    trials.get(trialNum);
+    // Display their quadrant move
+
+  }
+  drawArrow(new Point(width / 2, height / 2), 30, 0);
+}
+
 // For a given button ID, what is its location and size
 // Probably shouldn't have to edit this method
 Rectangle getButtonLocation(int i) {
@@ -133,89 +149,30 @@ Rectangle getButtonLocation(int i) {
 
 // Extra styling
   void drawCursor() {
-      Point center;
-      fill(COLOR_QUADRANT_HIGHLIGHT);
-
-      switch (quadrant) {
-        case 0:
-          center = new Point(getButtonLocation(0).x, getButtonLocation(1).y);
-          break;
-        case 1:
-          center = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
-          break;
-        case 3:
-          center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
-          break;
-        case 2:
-          center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
-          break;
-        case 4:
-          center = new Point(getButtonLocation(4).x, getButtonLocation(7).y);
-          break;
-        default: return;
-      }
-
-      ellipse(center.x, center.y, 20, 20);
-    }
-
-  void highlightQuadrant() {
+    Point center;
     fill(COLOR_QUADRANT_HIGHLIGHT);
-    Rectangle r1, r2, r3, r4;
 
     switch (quadrant) {
-      case 0: r1 = getButtonLocation(0);
-                r2 = getButtonLocation(1);
-                r3 = getButtonLocation(2);
-                r4 = getButtonLocation(4);
-                break;
-      case 1: r1 = getButtonLocation(3);
-                r2 = getButtonLocation(6);
-                r3 = getButtonLocation(7);
-                r4 = getButtonLocation(10);
-                break;
-      case 3: r1 = getButtonLocation(11);
-                r2 = getButtonLocation(13);
-                r3 = getButtonLocation(14);
-                r4 = getButtonLocation(15);
-                break;
-      case 2: r1 = getButtonLocation(5);
-                r2 = getButtonLocation(8);
-                r3 = getButtonLocation(9);
-                r4 = getButtonLocation(12);
-                break;
+      case 0:
+        center = new Point(getButtonLocation(0).x, getButtonLocation(1).y);
+        break;
+      case 1:
+        center = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
+        break;
+      case 2:
+        center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
+        break;
+      case 3:
+        center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
+        break;
       default: return;
     }
 
-    beginShape();
-    vertex(r4.x, r4.y + r4.height / 2);
-    vertex(r2.x - r2.width / 2, r2.y);
-    vertex(r1.x, r1.y - r1.height / 2);
-    vertex(r3.x + r3.width / 2, r3.y);
-    endShape(CLOSE);
-  }
-
-  int dir2quad(float angle){
-    int dir = 90 * (int)Math.round(angle / 90);
-    switch (dir) {
-      case -180:
-      case 180: return 0;
-      case -90: return 1;
-      case 90: return 2;
-      case 0: return 3;
-    }
-    return -1;
+    ellipse(center.x, center.y, 20, 20);
   }
 
 // Handle user input
-  void keyPressed() {
-    if (key == CODED){
-      if (keyCode == SHIFT){
-        firstSwipe = false;
-        quadrant = 4;
-      }
-    }
-  }
-
+  void keyReleased() { if (keyCode == SHIFT) quadrant = -1; }
 
   void updateSwipe() {
     if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
@@ -223,15 +180,15 @@ Rectangle getButtonLocation(int i) {
         swipelessFrameCount++; // Wait a number of frames to reset swipe
       } else {
         float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
-        firstSwipe = !firstSwipe;
-        if (firstSwipe){
-          quadrant = dir2quad(angle);
+        int dir = angleToDirection(angle);
+        if (quadrant == -1) {
+          // First swipe, set quadrant
+          quadrant = dir;
+        } else {
+          handleSwipe(dir);
+          quadrant = -1;
         }
-        else{ //we're on the 2nd swipe
-          direction = dir2quad(angle);
-          handleSwipe(direction);
-          quadrant = 4;
-        }
+
         swipelessFrameCount = 0;
         swipeOrigin = null;
 
@@ -239,11 +196,14 @@ Rectangle getButtonLocation(int i) {
         ignoreMouseMove = true;
         robot.mouseMove(width / 2, height / 2);
       }
+    } else {
+      swipelessFrameCount = 0;
     }
   }
 
-  void handleSwipe(int dir) {
-    if (direction == -1) return;
+  void handleSwipe(int direction) {
+    if (direction == -1 || quadrant == -1) return; // something went wrong
+
     // if task is over, just return
     if (trialNum >= trials.size()) return;
 
@@ -261,17 +221,30 @@ Rectangle getButtonLocation(int i) {
       println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
     }
 
-    if (TARGETS_BY_QUADRANT[quadrant][direction] == trials.get(trialNum)){
-      System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
+    if (TARGETS_BY_QUADRANT[quadrant][direction] == trials.get(trialNum)) {
+      println("HIT! " + trialNum + " " + (millis() - startTime));
       hits++;
-    }
-    else {
-      System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
+    } else {
+      println("MISSED! " + trialNum + " " + (millis() - startTime));
       misses++;
     }
+
     trialNum++; //Increment trial number
   }
 
+  int angleToDirection(float angle) {
+    println(angle);
+    int cardinal = 90 * (int)Math.round(angle / 90);
+    println(cardinal);
+    switch (cardinal) {
+      case -180:
+      case 180: return 0;
+      case -90: return 1;
+      case 90: return 2;
+      case 0: return 3;
+    }
+    return -1;
+  }
 
   void mouseMoved() {
     if (ignoreMouseMove)
@@ -279,4 +252,17 @@ Rectangle getButtonLocation(int i) {
     else if (swipeOrigin == null)
       // Fresh swipe, save origin pos
       swipeOrigin = new Point(mouseX, mouseY);
+  }
+
+  void drawArrow(Point center, int len, float angle) {
+    strokeWeight(10);
+    stroke(0,50,200);
+    pushMatrix();
+    translate(center.x, center.y);
+    rotate(radians(angle));
+    line(0,0,len, 0);
+    line(len, 0, len - 8, -8);
+    line(len, 0, len - 8, 8);
+    popMatrix();
+    noStroke();
   }
