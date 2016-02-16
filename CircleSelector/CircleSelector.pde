@@ -37,9 +37,13 @@ Point swipeOrigin = null; // null if no swipe
 int swipelessFrameCount = 0; // current swipe frame count
 boolean ignoreMouseMove = false;
 
+int trueX;
+int trueY;
+
 void setup() {
   fullScreen();
-  noCursor(); //hides the system cursor if you want
+  //noCursor(); //hides the system cursor if you want
+  //size(1000, 1000); // set the size of the window
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
   textFont(createFont("Arial", 16)); //sets the font to Arial size 16
   textAlign(CENTER);
@@ -87,25 +91,23 @@ void draw() {
   // Display trial number
   fill(255); text((trialNum + 1) + " of " + trials.size(), 40, 20);
 
-
-  // Highlight the selected quadrant
-  drawCursor();
-
   // Draw the squares
   drawSquares();
 
-  // Update swipe data
-  updateSwipe();
+  //Get selected square
+  drawSelectedPosition();
 
   // update hints
-  drawNextMoves();
+  //drawNextMoves();
 
   // Separate quadrants
+  /*
   stroke(COLOR_QUADRANT_HIGHLIGHT);
   strokeWeight(10);
   line(getButtonLocation(6).x, getButtonLocation(0).y, getButtonLocation(9).x, getButtonLocation(15).y);
   line(getButtonLocation(9).x, getButtonLocation(0).y, getButtonLocation(6).x, getButtonLocation(15).y);
   noStroke();
+  */
 }
 
 void drawSquares() {
@@ -128,45 +130,64 @@ void drawSquares() {
   }
 }
 
-void drawNextMoves() {
-  drawArrow(new Point(width / 2, height / 2), 30, 0);
-}
-
 // For a given button ID, what is its location and size
 // Probably shouldn't have to edit this method
 Rectangle getButtonLocation(int i) {
-  int[] diamondX = {4, 3, 5, 2, 4, 6, 1, 3, 5, 7, 2, 4, 6, 3, 5, 4};
-  int[] diamondY = {1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};
-  int x = diamondX[i] * (padding + buttonSize);// + margin;
-  int y = diamondY[i] * (padding + buttonSize);// + margin;
+  float radius = 3;
+  int marginX = 600;
+  int marginY = 400;
+
+  
+  double[] diamond = {0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180, 202.5, 225, 247.5, 270, 295.5, 315, 337.5};
+  double angle = Math.toRadians(diamond[i]);
+  
+  int x = (int)(Math.cos(angle) * radius * (padding + buttonSize)) + marginX;
+  int y = (int)(Math.sin(angle) * radius * (padding + buttonSize)) + marginY;
   return new Rectangle(x, y, buttonSize, buttonSize);
 }
 
 // Extra styling
-  void drawCursor() {
-    Point center;
-    fill(COLOR_QUADRANT_HIGHLIGHT);
+  void drawSelectedPosition() {
+    Point origin = new Point(getButtonLocation(4).x, getButtonLocation(0).y);
 
-    switch (quadrant) {
-      case 0:
-        center = new Point(getButtonLocation(0).x, getButtonLocation(1).y);
-        break;
-      case 1:
-        center = new Point(getButtonLocation(3).x, getButtonLocation(6).y);
-        break;
-      case 3:
-        center = new Point(getButtonLocation(15).x, getButtonLocation(13).y);
-        break;
-      case 2:
-        center = new Point(getButtonLocation(5).x, getButtonLocation(9).y);
-        break;
-      default: return;
+    int threshold = 75;
+
+    float angle = degrees(atan2(mouseX - origin.x, mouseY - origin.y));
+    float distance = sqrt((mouseX-origin.x) * (mouseX-origin.x) + (mouseY - origin.y) * (mouseY - origin.y));
+    
+    if(distance > threshold)
+    {
+      int index = angleToDirection(angle);
+    
+      trueX = getButtonLocation(index).x;
+      trueY = getButtonLocation(index).y;
+    }else {
+      trueX = origin.x;
+      trueY = origin.y;
     }
 
-    ellipse(center.x, center.y, 20, 20);
+    fill(COLOR_QUADRANT_HIGHLIGHT);
+    ellipse(trueX, trueY, 20, 20);
   }
 
-// Handle user input
+int angleToDirection(float angle) {
+    println(angle);
+    float cardinal = 22.5 * Math.round((angle) / 22.5);
+    int retIndex = int(cardinal / -22.5);
+    
+    println(retIndex);
+    switch (retIndex) {
+      case 8: return 12;
+      case -8: return 12;
+      case -7: return 13;
+      case -6: return 14;
+      case -5: return 15;
+      default: return retIndex + 4;
+  }
+}
+
+
+//Handle user input
   void keyPressed() {
     if ("wads".indexOf(key) >= 0) {
       quadrant = "wads".indexOf(key);
@@ -180,91 +201,38 @@ Rectangle getButtonLocation(int i) {
     }
   }
 
+void keyReleased() // test to see if hit was in target!
+{
+  if (trialNum >= trials.size()) //if task is over, just return
+    return;
 
-  void updateSwipe() {
-    if (swipeOrigin != null && mouseX == pmouseX && mouseY == pmouseY) {
-      if (swipelessFrameCount < SWIPE_RESET_FRAMES) {
-        swipelessFrameCount++; // Wait a number of frames to reset swipe
-      } else {
-        float angle = degrees(atan2(mouseX - swipeOrigin.x, mouseY - swipeOrigin.y));
-        handleSwipe(angleToDirection(angle));
+  if (trialNum == 0) //check if first click, if so, start timer
+    startTime = millis();
 
-        swipelessFrameCount = 0;
-        swipeOrigin = null;
-
-        // Reset mouse so we don't hit edge of screen after multiple swipes
-        ignoreMouseMove = true;
-        robot.mouseMove(width / 2, height / 2);
-      }
-    } else {
-      swipelessFrameCount = 0;
-    }
+  if (trialNum == trials.size() - 1) //check if final click
+  {
+    finishTime = millis();
+    //write to terminal some output:
+    println("Hits: " + hits);
+    println("Misses: " + misses);
+    println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
+    println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
+    println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
   }
 
-  void handleSwipe(int direction) {
-    if (direction == -1) return; // something went wrong
+  Rectangle bounds = getButtonLocation(trials.get(trialNum));
 
-    // if task is over, just return
-    if (trialNum >= trials.size()) return;
-
-    // check if first click, if so, start timer
-    if (trialNum == 0) startTime = millis();
-
-    // check if final click
-    if (trialNum == trials.size() - 1) {
-      finishTime = millis();
-      // write to terminal some output:
-      println("Hits: " + hits);
-      println("Misses: " + misses);
-      println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
-      println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
-      println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
-    }
-
-
-    println(quadrant);
-    if (TARGETS_BY_QUADRANT[quadrant][direction] == trials.get(trialNum)) {
-      println("HIT! " + trialNum + " " + (millis() - startTime));
-      hits++;
-    } else {
-      println("MISSED! " + trialNum + " " + (millis() - startTime));
-      misses++;
-    }
-
-    trialNum++; //Increment trial number
+ //check to see if mouse cursor is inside button 
+  if ((trueX == bounds.x) && (trueY == bounds.y)) // test to see if hit was within bounds
+  {
+    System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
+    hits++; 
+  } 
+  else
+  {
+    System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
+    misses++;
   }
 
-  int angleToDirection(float angle) {
-    println(angle);
-    int cardinal = 90 * (int)Math.round(angle / 90);
-    println(cardinal);
-    switch (cardinal) {
-      case -180:
-      case 180: return 0;
-      case -90: return 1;
-      case 90: return 2;
-      case 0: return 3;
-    }
-    return -1;
-  }
-
-  void mouseMoved() {
-    if (ignoreMouseMove)
-      ignoreMouseMove = false;
-    else if (swipeOrigin == null)
-      // Fresh swipe, save origin pos
-      swipeOrigin = new Point(mouseX, mouseY);
-  }
-
-  void drawArrow(Point center, int len, float angle) {
-    strokeWeight(10);
-    stroke(0,50,200);
-    pushMatrix();
-    translate(center.x, center.y);
-    rotate(radians(angle));
-    line(0,0,len, 0);
-    line(len, 0, len - 8, -8);
-    line(len, 0, len - 8, 8);
-    popMatrix();
-    noStroke();
-  }
+  trialNum++; //Increment trial number
+}
