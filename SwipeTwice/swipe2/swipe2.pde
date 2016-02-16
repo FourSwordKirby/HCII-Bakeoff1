@@ -32,7 +32,7 @@ boolean ignoreMouseMove = false;
 boolean firstSwipe = false;
 int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
       {0, 1, 2, 4},
-      {3, 7, 6, 10},
+      {3, 6, 7, 10},
       {5, 8, 9, 12},
       {11, 13, 14, 15},
     };
