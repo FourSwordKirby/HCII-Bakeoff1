@@ -39,7 +39,7 @@ int[][] TARGETS_BY_QUADRANT = { // Hardcode targets by our diagnol quadrants
 int quadrant = 4; // 0 = up, 1 = left, 2 = right, 3 = down
 int direction = -1;
 
-void setup() {
+void setup() { 
   fullScreen();
   noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
