@@ -31,7 +31,7 @@ int COLOR_SQUARE_SELECTED = 0xFF00AAFF;
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
 
-int numRepeats = 1; //sets the number of times each button repeats in the test
+int numRepeats = 10; //sets the number of times each button repeats in the test
 
 int trueX = 0;
 int trueY = 0;
