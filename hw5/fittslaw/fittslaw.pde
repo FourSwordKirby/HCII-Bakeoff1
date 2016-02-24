@@ -23,7 +23,7 @@ int xPosTarget;
 int yPosTarget;
 int lastCurTime;
 int curTime = 0;
-Robot robot; //initalized in setup 
+Robot robot; //initalized in setup
 
 int COLOR_SQUARE_FG = 0xFFFFFF00; // Current target color
 int COLOR_SQUARE_HINT = 0x44888800; // Up next target
@@ -49,7 +49,7 @@ void setup()
 
   try {
     robot = new Robot(); //create a "Java Robot" class that can move the system cursor
-  } 
+  }
   catch (AWTException e) {
     e.printStackTrace();
   }
@@ -62,8 +62,8 @@ void setup()
       trials.add(i);
 
   Collections.shuffle(trials); // randomize the order of the buttons
-  System.out.println("trial order: " + trials);
-  
+  System.out.println("trial order: " + trials + "\n\n");
+
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
 }
 
@@ -76,12 +76,12 @@ void draw()
   {
     fill(255); //set fill color to white
     //write to screen (not console)
-    text("Finished!", width / 2, height / 2); 
+    text("Finished!", width / 2, height / 2);
     text("Hits: " + hits, width / 2, height / 2 + 20);
     text("Misses: " + misses, width / 2, height / 2 + 40);
     text("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%", width / 2, height / 2 + 60);
     text("Total time taken: " + (finishTime-startTime) / 1000f + " sec", width / 2, height / 2 + 80);
-    text("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec", width / 2, height / 2 + 100);      
+    text("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec", width / 2, height / 2 + 100);
     return; //return, nothing else to do now test is over
   }
 
@@ -95,7 +95,7 @@ void draw()
 
   //fill(255, 0, 0, 200); // set fill color to translucent red
   //ellipse(trueX, trueY, 20, 20); //draw user cursor as a circle with a diameter of 20
-  
+
   textFont(createFont("Arial", 12)); //sets the font to Arial size 16
   fill(255); text("Use spacebar to select target.", width / 2, height - 50);
   fill(255); text("Upcoming target's background is highlighted in yellow.", width / 2, height - 30);
@@ -106,7 +106,7 @@ void initTruePoint()
 {
   for(int i = 0; i < 16; i++){
     Rectangle bounds = getButtonLocation(i);
-    
+
     if ((mouseX > bounds.x - bounds.width && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y - bounds.height && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
     {
       trueX = bounds.x;
@@ -123,40 +123,49 @@ void mousePressed() // test to see if hit was in target!
   if (trialNum == 0) //check if first click, if so, start timer
     startTime = millis();
 
-  if (trialNum == trials.size() - 1) //check if final click
-  {
-    finishTime = millis();
-    //write to terminal some output:
-    println("Hits: " + hits);
-    println("Misses: " + misses);
-    println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
-    println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
-    println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
-  }
+  // if (trialNum == trials.size() - 1) //check if final click
+  // {
+  //   finishTime = millis();
+  //   //write to terminal some output:
+  //   println("Hits: " + hits);
+  //   println("Misses: " + misses);
+  //   println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
+  //   println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
+  //   println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
+  // }
   curTime = millis() - lastCurTime;
   lastCurTime = millis();
- //check to see if mouse cursor is inside button 
+ //check to see if mouse cursor is inside button
   if (isTargetSelected(trials.get(trialNum))) // test to see if hit was within bounds
   {
     hit = 1; // success; 1 is true
-    hits++; 
-  } 
+    hits++;
+  }
   else
   {
     hit = 0; // fail; 0 is false
     misses++;
   }
-  // for each turn. must print: a) trial num; b) which participant 
-  // c) x position of cursor at beg of trial 
-  // d) y pos of cursor at beg of trial e) x pos of center of target 
-  // f) y pos of center of target g) width of target h) time taken i) hit or miss
-  System.out.println("%d, %d, %d, %d, %d, %d, %d, %f, %d", trialNum, 
-  xPosCursor, yPosCursor, xPosTarget, yPosTarget, buttonSize, curTime, hit);
+  // for each turn. must print:
+  // a) trial num
+  // b) x,y position of cursor at beg of trial
+  // c) x,y pos of center of target
+  // d) width of target
+  // e) time taken
+  // f) hit or miss
+  System.out.format("\n%d,%d,%d,%d,%d,%d,%d,%d\n",
+    trialNum,
+    xPosCursor, yPosCursor,
+    xPosTarget, yPosTarget,
+    buttonSize,
+    curTime,
+    hit);
+
   trialNum++; //Increment trial number
-}  
+}
 
 
-boolean isTargetSelected(int target) 
+boolean isTargetSelected(int target)
 {
   Rectangle bounds = getButtonLocation(target);
   xPosTarget = bounds.x + (buttonSize/2); //finding xPos of center of target
@@ -178,7 +187,7 @@ Rectangle getButtonLocation(int i) //for a given button ID, what is its location
 void drawButton(int i)
 {
   Rectangle bounds = getButtonLocation(i);
-  
+
   // highlight the background of the next square
   if (trialNum + 1 < trials.size() && trials.get(trialNum + 1) == i) {
     fill(COLOR_SQUARE_HINT);
@@ -192,7 +201,7 @@ void drawButton(int i)
   rect(bounds.x, bounds.y, bounds.width, bounds.height); //draw button
 }
 
-void keyPressed() 
+void keyPressed()
 {
   if (key == ' ') mousePressed();
   //can use the keyboard if you wish
