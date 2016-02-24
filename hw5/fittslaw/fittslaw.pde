@@ -31,7 +31,7 @@ int COLOR_SQUARE_SELECTED = 0xFF00AAFF;
 int COLOR_NEUTRAL = 0x77FFFFFF; // Inactive targets
 int COLOR_QUADRANT_HIGHLIGHT = 0x77FF0000; // For 'false cursor' dot in quadrants
 
-int numRepeats = 10; //sets the number of times each button repeats in the test
+int numRepeats = 1; //sets the number of times each button repeats in the test
 
 int trueX = 0;
 int trueY = 0;
@@ -62,7 +62,7 @@ void setup()
       trials.add(i);
 
   Collections.shuffle(trials); // randomize the order of the buttons
-  System.out.println("trial order: " + trials + "\n\n");
+  System.out.println("trial order: " + trials + "\nFitt's Law Output:\n\n");
 
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
 }
@@ -153,7 +153,7 @@ void mousePressed() // test to see if hit was in target!
   // d) width of target
   // e) time taken
   // f) hit or miss
-  System.out.format("\n%d,%d,%d,%d,%d,%d,%d,%d\n",
+  System.out.format("%d,%d,%d,%d,%d,%d,%d,%d\n",
     trialNum,
     xPosCursor, yPosCursor,
     xPosTarget, yPosTarget,
