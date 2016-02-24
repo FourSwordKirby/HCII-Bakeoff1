@@ -166,8 +166,8 @@ boolean isTargetSelected(int target)
   yPosTarget = bounds.y + (buttonSize/2); //finding yPos of center of  target
   xLastPosCursor = xPosCursor;
   yLastPosCursor = yPosCursor;
-  xPosCursor = trueX; //finding x pos of the cursor at beg of next trial
-  yPosCursor = trueY; //finding y pos of the cursor at beginning of next trial
+  xPosCursor = mouseX; //finding x pos of the cursor at beg of next trial
+  yPosCursor = mouseY; //finding y pos of the cursor at beginning of next trial
   return (trueX == bounds.x) && (trueY == bounds.y);
 }
 
