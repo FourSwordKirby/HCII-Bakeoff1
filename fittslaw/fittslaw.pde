@@ -64,8 +64,8 @@ void setup()
       trials.add(i);
 
   Collections.shuffle(trials); // randomize the order of the buttons
-  System.out.println("trial order: " + trials);
-  
+  System.out.println("trial order: " + trials + "\nFitt's Law Output:\n\n");
+
   frame.setLocation(0,0); // put window in top left corner of screen (doesn't always work)
 }
 
@@ -125,16 +125,16 @@ void mousePressed() // test to see if hit was in target!
   if (trialNum == 0) //check if first click, if so, start timer
     startTime = millis();
 
-  if (trialNum == trials.size() - 1) //check if final click
-  {
-    finishTime = millis();
-    //write to terminal some output:
-    println("Hits: " + hits);
-    println("Misses: " + misses);
-    println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
-    println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
-    println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
-  }
+  //if (trialNum == trials.size() - 1) //check if final click
+  //{
+  //  finishTime = millis();
+  //  //write to terminal some output:
+  //  println("Hits: " + hits);
+  //  println("Misses: " + misses);
+  //  println("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%");
+  //  println("Total time taken: " + (finishTime-startTime) / 1000f + " sec");
+  //  println("Average time for each button: " + ((finishTime-startTime) / 1000f)/(float)(hits+misses) + " sec");
+  //}
   curTime = millis() - lastCurTime;
   lastCurTime = millis();
  //check to see if mouse cursor is inside button 
@@ -148,13 +148,22 @@ void mousePressed() // test to see if hit was in target!
     hit = 0; // fail; 0 is false
     misses++;
   }
-  // for each turn. must print: a) trial num; b) which participant 
-  // c) x position of cursor at beg of trial 
-  // d) y pos of cursor at beg of trial e) x pos of center of target 
-  // f) y pos of center of target g) width of target h) time taken i) hit or miss
-  System.out.println(trialNum + ", " + numParticipant + ", " + xLastPosCursor + ", " + 
-  yLastPosCursor + ", " + xPosTarget + ", " + yPosTarget + ", " + buttonSize + ", " 
-  + curTime + ", " + hit);
+
+  // for each turn, must print:
+  // a) trial num
+  // b) x,y position of cursor at beg of trial
+  // c) x,y pos of center of target
+  // d) width of target
+  // e) time taken
+  // f) hit or miss
+  System.out.format("%d,2,%d,%d,%d,%d,%d,%d,%d\n",
+    trialNum,
+    xLastPosCursor, yLastPosCursor,
+    xPosTarget, yPosTarget,
+    buttonSize,
+    curTime,
+    hit);
+
   trialNum++; //Increment trial number
 }  
 
